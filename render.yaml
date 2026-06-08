@@ -10,7 +10,8 @@ services:
   # ==============================================================
   # FRONTEND — React + Vite (Static Site)
   # ==============================================================
-  - type: static
+  - type: web
+    env: static
     name: ai-sinav-frontend
     branch: main
     rootDir: frontend
