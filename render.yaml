@@ -1,0 +1,256 @@
+# ================================================================
+# render.yaml — AI Sinav Sistemi (Render.com IaC)
+# Free tier deployment: Node.js services + React static site
+# MongoDB: Atlas free tier (M0) — set MONGO_URI in env group below
+# AI services: lightweight mock mode (full AI needs Starter plan)
+# ================================================================
+
+services:
+
+  # ==============================================================
+  # FRONTEND — React + Vite (Static Site)
+  # ==============================================================
+  - type: static
+    name: ai-sinav-frontend
+    branch: main
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://ai-sinav-gateway.onrender.com
+      - key: VITE_PROCTORING_WS_URL
+        value: https://ai-sinav-proctoring.onrender.com
+
+  # ==============================================================
+  # GATEWAY SERVICE — API Gateway & Tenant Management
+  # Tüm frontend istekleri buradan geçer
+  # ==============================================================
+  - type: web
+    name: ai-sinav-gateway
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/gateway-service
+    buildCommand: npm install --production
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - key: EXAM_SERVICE_URL
+        value: https://ai-sinav-exam.onrender.com
+      - key: PROCTORING_SERVICE_URL
+        value: https://ai-sinav-proctoring.onrender.com
+      - key: REPORTING_SERVICE_URL
+        value: https://ai-sinav-reporting.onrender.com
+      - key: WEBHOOK_SERVICE_URL
+        value: https://ai-sinav-webhook.onrender.com
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
+  # EXAM SERVICE — Sınav yönetimi (port 3002)
+  # ==============================================================
+  - type: web
+    name: ai-sinav-exam
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/exam-service
+    buildCommand: npm install --production
+    startCommand: node src/server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - key: GATEWAY_URL
+        value: https://ai-sinav-gateway.onrender.com
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
+  # PROCTORING SERVICE — Gözetim + Socket.io (port 3004)
+  # ==============================================================
+  - type: web
+    name: ai-sinav-proctoring
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/proctoring-service
+    buildCommand: npm install --production
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - key: GATEWAY_URL
+        value: https://ai-sinav-gateway.onrender.com
+      # AI servisleri — free tier'da mock mode çalışır
+      - key: FACE_SERVICE_URL
+        value: https://ai-sinav-face-detection.onrender.com
+      - key: EYE_SERVICE_URL
+        value: https://ai-sinav-eye-tracking.onrender.com
+      - key: AUDIO_SERVICE_URL
+        value: https://ai-sinav-audio-analysis.onrender.com
+      - key: RISK_SERVICE_URL
+        value: https://ai-sinav-risk-scoring.onrender.com
+      - key: AI_REQUEST_TIMEOUT_MS
+        value: 10000
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
+  # REPORTING SERVICE — Raporlama & PDF/Excel export (port 3003)
+  # ==============================================================
+  - type: web
+    name: ai-sinav-reporting
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/reporting-service
+    buildCommand: npm install --production
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - key: GATEWAY_URL
+        value: https://ai-sinav-gateway.onrender.com
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
+  # WEBHOOK SERVICE — B2B event delivery
+  # ==============================================================
+  - type: web
+    name: ai-sinav-webhook
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/webhook-service
+    buildCommand: npm install --production
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
+  # AI SERVICES — Minimal/Mock (Free Tier)
+  # Sadece API endpoint'leri çalışır, gerçek AI yok.
+  # Gerçek AI için Starter plan gerekir ($7/mo/service).
+  # Build: render-requirements.txt (hafif bağımlılıklar)
+  # ==============================================================
+
+  - type: web
+    name: ai-sinav-face-detection
+    env: python
+    plan: free
+    branch: main
+    rootDir: ai-services/face-detection-service
+    buildCommand: pip install -r render-requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MOCK_MODE
+        value: "true"
+
+  - type: web
+    name: ai-sinav-eye-tracking
+    env: python
+    plan: free
+    branch: main
+    rootDir: ai-services/eye-tracking-service
+    buildCommand: pip install -r render-requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MOCK_MODE
+        value: "true"
+
+  - type: web
+    name: ai-sinav-audio-analysis
+    env: python
+    plan: free
+    branch: main
+    rootDir: ai-services/audio-analysis-service
+    buildCommand: pip install -r render-requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MOCK_MODE
+        value: "true"
+
+  - type: web
+    name: ai-sinav-risk-scoring
+    env: python
+    plan: free
+    branch: main
+    rootDir: ai-services/risk-scoring-service
+    buildCommand: pip install -r render-requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MOCK_MODE
+        value: "true"
+
+# ================================================================
+# ENV VAR GROUPS — Paylaşılan değişkenler
+# ================================================================
+envVarGroups:
+
+  # MongoDB Atlas bağlantısı
+  # Render dashboard'dan bu değeri doldur:
+  # mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/ai_sinav_db?retryWrites=true&w=majority
+  - name: mongodb-atlas
+    envVars:
+      - key: MONGO_URI
+        value: REPLACE_WITH_ATLAS_CONNECTION_STRING
+
+  # JWT ayarları — dashboard'dan değiştir!
+  - name: jwt-config
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+      - key: INSTRUCTOR_SECRET_CODE
+        value: EGITMEN-AI-2024
