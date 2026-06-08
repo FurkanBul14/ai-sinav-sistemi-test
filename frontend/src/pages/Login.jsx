@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import authService from "../services/auth";
 import "../styles/auth.css";
 
@@ -12,23 +12,16 @@ export default function Login({ onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("instructorCode");
-    if (code) {
-      setIsLoginView(false);
-      setRole("instructor");
-      setInstructorCode(code.trim());
-    }
-  }, []);
-
   const routeByRole = () => {
     const currentUser = authService.getCurrentUser();
+
     if (currentUser?.role === "admin" || currentUser?.role === "instructor") {
       onNavigate("instructor-dashboard");
       return;
     }
-    onNavigate("pre-exam-check");
+
+    // Öğrenci giriş yapınca önce sınav kodu girilen home ekranına gider
+    onNavigate("student-home");
   };
 
   const handleSubmit = async (event) => {
@@ -44,7 +37,14 @@ export default function Login({ onNavigate }) {
           setError("Eğitmen kaydı için lütfen sistem kodunu giriniz.");
           return;
         }
-        await authService.register({ name, email, password, role, instructorCode });
+
+        await authService.register({
+          name,
+          email,
+          password,
+          role,
+          instructorCode,
+        });
       }
 
       routeByRole();
@@ -72,7 +72,14 @@ export default function Login({ onNavigate }) {
         </h1>
 
         {error && (
-          <div className="auth-error" style={{ color: "red", marginBottom: "15px", textAlign: "center" }}>
+          <div
+            className="auth-error"
+            style={{
+              color: "red",
+              marginBottom: "15px",
+              textAlign: "center",
+            }}
+          >
             {error}
           </div>
         )}
@@ -150,10 +157,19 @@ export default function Login({ onNavigate }) {
           )}
 
           <div className="auth-actions">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+            >
               {loading ? "Bekleyiniz..." : isLoginView ? "Giriş Yap" : "Hesap Oluştur"}
             </button>
-            <button type="button" className="btn btn-secondary" onClick={toggleView}>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={toggleView}
+            >
               {isLoginView ? "Kayıt Ol" : "Vazgeç"}
             </button>
           </div>

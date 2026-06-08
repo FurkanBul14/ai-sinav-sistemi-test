@@ -178,6 +178,7 @@ export default function ReportPage({ onNavigate, sessionId }) {
               <div className="violation-row"><span>Birden fazla yüz:</span><span className="violation-count">{summary.multipleFace || 0}</span></div>
               <div className="violation-row"><span>Bakış kaybı:</span><span className="violation-count">{summary.gaze || 0}</span></div>
               <div className="violation-row"><span>Şüpheli ses:</span><span className="violation-count">{summary.audio || 0}</span></div>
+              <div className="violation-row"><span>Telefon / nesne:</span><span className="violation-count">{summary.objects || 0}</span></div>
               <div className="violation-row"><span>Sekme değişimi:</span><span className="violation-count">{summary.tab || 0}</span></div>
               <div className="violation-row"><span>Tam ekran ihlali:</span><span className="violation-count">{summary.fullscreen || 0}</span></div>
             </div>
