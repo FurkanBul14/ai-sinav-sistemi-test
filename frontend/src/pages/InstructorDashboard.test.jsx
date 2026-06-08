@@ -42,7 +42,7 @@ describe('InstructorDashboard Page', () => {
     render(<InstructorDashboard onNavigate={() => {}} onLogout={() => {}} />)
 
     expect(screen.getAllByText('Dashboard')).toHaveLength(2)
-    expect(screen.getByText('Sinav Yonetimi')).toBeInTheDocument()
+    expect(screen.getByText('Sinav Olustur')).toBeInTheDocument()
     expect(screen.getByText('Raporlar')).toBeInTheDocument()
     expect(screen.getByText('Cikis')).toBeInTheDocument()
   })

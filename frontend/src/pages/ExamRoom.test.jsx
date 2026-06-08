@@ -99,14 +99,40 @@ describe('ExamRoom Page', () => {
     expect(await screen.findByText('Önceki')).toBeDisabled()
   })
 
-  test('son soruda sinavi bitir butonu oturumu kapatmali', async () => {
-    const mockNavigate = vi.fn()
-    render(<ExamRoom onNavigate={mockNavigate} />)
+  test('sinav bitince sonuc ekrani gosterilmeli ve ana sayfaya donebilmeli', async () => {
+  const mockNavigate = vi.fn()
 
-    await userEvent.click(screen.getByText('Sınavı Başlat'))
-    await userEvent.click(await screen.findByText('Sonraki'))
-    await userEvent.click(await screen.findByText('Sınavı Bitir'))
+  render(<ExamRoom onNavigate={mockNavigate} />)
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('student-home'))
-  })
+  await userEvent.type(
+    screen.getByPlaceholderText('Örn: DEMO01'),
+    'DEMO01'
+  )
+
+  await userEvent.click(screen.getByText('Sınavı Başlat'))
+
+  expect(
+    await screen.findByText(/Soru 1 \/ 2/i)
+  ).toBeInTheDocument()
+
+  await userEvent.click(screen.getByText('Sonraki'))
+
+  expect(
+    await screen.findByText(/Soru 2 \/ 2/i)
+  ).toBeInTheDocument()
+
+  await userEvent.click(
+    await screen.findByText('Sınavı Bitir')
+  )
+
+  expect(
+    await screen.findByText('Sınav Bitti')
+  ).toBeInTheDocument()
+
+  await userEvent.click(
+    screen.getByText('Ana Sayfaya Dön')
+  )
+
+  expect(mockNavigate).toHaveBeenCalledWith('student-home')
+})
 })
