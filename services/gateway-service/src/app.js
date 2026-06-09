@@ -85,8 +85,7 @@ function makeProxy(target, pathRewrite = {}) {
     target,
     changeOrigin: true,
     pathRewrite: Object.keys(pathRewrite).length ? pathRewrite : undefined,
-    proxyTimeout: 60000,  // Render free tier cold start için 60sn bekle
-    timeout: 65000,
+    proxyTimeout: 60000,
     on: {
       error: (err, req, res) => {
         console.error(`[Gateway] Proxy hatası (${target}):`, err.message);
