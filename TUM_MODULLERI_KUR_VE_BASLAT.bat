@@ -14,6 +14,14 @@ if %errorlevel% neq 0 (
 echo Root npm install basarili.
 echo.
 
+echo 1.5 Olası dosya dizini hatasi düzeltiliyor (auth-service icinde auth-service varsa disari cikarilir)...
+if exist "services\auth-service\auth-service\src" (
+    echo Hatali ic ice klasor tespit edildi, xcopy ile duzeltiliyor...
+    xcopy /E /I /Y "services\auth-service\auth-service\*" "services\auth-service\" >nul 2>&1
+    rd /S /Q "services\auth-service\auth-service" >nul 2>&1
+)
+echo.
+
 echo 2. Frontend ve Backend servisleri icin node_modules klasorleri olusturuluyor...
 call npm run install:all
 if %errorlevel% neq 0 (
