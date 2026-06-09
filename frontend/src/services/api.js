@@ -3,6 +3,7 @@
 //Auth Service ile haberleşmek için merkezi HTTP client
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_KEY = import.meta.env.VITE_API_KEY || 'pk_live_demo12345678901';
 
 class ApiClient {
   constructor(baseURL) {
@@ -21,7 +22,7 @@ class ApiClient {
 
   // Header'ları oluştur
   _getHeaders(includeAuth = true) {
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = { 'Content-Type': 'application/json', 'X-API-Key': API_KEY };
     if (includeAuth) {
       const token = this.getToken();
       if (token) headers['Authorization'] = `Bearer ${token}`;
