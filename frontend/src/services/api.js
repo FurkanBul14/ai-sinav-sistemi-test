@@ -2,7 +2,7 @@
 //API İstemci (Axios-free, native fetch wrapper)
 //Auth Service ile haberleşmek için merkezi HTTP client
 
-const API_BASE_URL = '';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 class ApiClient {
   constructor(baseURL) {
