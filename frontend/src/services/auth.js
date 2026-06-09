@@ -1,8 +1,8 @@
-import api from './api.js';
+import api, { authApi } from './api.js';
 
 const authService = {
   async register({ name, email, password, role, instructorCode }) {
-    const data = await api.postPublic('/api/auth/register', { name, email, password, role, instructorCode });
+    const data = await authApi.postPublic('/api/auth/register', { name, email, password, role, instructorCode });
     if (data.success) {
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('refreshToken', data.data.refreshToken);
@@ -12,7 +12,7 @@ const authService = {
   },
 
   async login({ email, password }) {
-    const data = await api.postPublic('/api/auth/login', { email, password });
+    const data = await authApi.postPublic('/api/auth/login', { email, password });
     if (data.success) {
       localStorage.setItem('token', data.data.token);
       localStorage.setItem('refreshToken', data.data.refreshToken);

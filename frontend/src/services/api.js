@@ -3,6 +3,7 @@
 //Auth Service ile haberleşmek için merkezi HTTP client
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const AUTH_BASE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || API_BASE_URL;
 const API_KEY = import.meta.env.VITE_API_KEY || 'pk_live_demo12345678901';
 
 class ApiClient {
@@ -131,4 +132,5 @@ class ApiClient {
 }
 
 const api = new ApiClient(API_BASE_URL);
+export const authApi = new ApiClient(AUTH_BASE_URL);
 export default api;
