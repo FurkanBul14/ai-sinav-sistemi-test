@@ -36,6 +36,27 @@ services:
         value: https://ai-sinav-proctoring.onrender.com
 
   # ==============================================================
+  # AUTH SERVICE — Kimlik doğrulama (port 3001)
+  # ==============================================================
+  - type: web
+    name: ai-sinav-auth
+    env: node
+    plan: free
+    branch: main
+    rootDir: services/auth-service
+    buildCommand: npm install --production
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://ai-sinav-frontend.onrender.com
+      - fromGroup: mongodb-atlas
+      - fromGroup: jwt-config
+
+  # ==============================================================
   # GATEWAY SERVICE — API Gateway & Tenant Management
   # Tüm frontend istekleri buradan geçer
   # ==============================================================
@@ -54,6 +75,8 @@ services:
         value: production
       - key: FRONTEND_URL
         value: https://ai-sinav-frontend.onrender.com
+      - key: AUTH_SERVICE_URL
+        value: https://ai-sinav-auth.onrender.com
       - key: EXAM_SERVICE_URL
         value: https://ai-sinav-exam.onrender.com
       - key: PROCTORING_SERVICE_URL
