@@ -33,28 +33,44 @@ vi.mock('../services/reporting.js', () => ({
 
 vi.mock('../services/auth.js', () => ({
   default: {
-    getCurrentUser: vi.fn(() => ({ id: 'admin-1', role: 'admin' })),
+    getCurrentUser: vi.fn(() => ({
+      id: 'admin-1',
+      name: 'Eğitmen',
+      role: 'admin',
+    })),
+  },
+}))
+
+vi.mock('../services/exam.js', () => ({
+  default: {
+    createExam: vi.fn(),
   },
 }))
 
 describe('InstructorDashboard Page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+  })
+
   test('navbar ve dashboard basligi render edilmeli', () => {
     render(<InstructorDashboard onNavigate={() => {}} onLogout={() => {}} />)
 
     expect(screen.getAllByText('Dashboard')).toHaveLength(2)
-    expect(screen.getByText('Sinav Yonetimi')).toBeInTheDocument()
+    expect(screen.getByText('Sınav Oluştur')).toBeInTheDocument()
     expect(screen.getByText('Raporlar')).toBeInTheDocument()
-    expect(screen.getByText('Cikis')).toBeInTheDocument()
+    expect(screen.getByText('Çıkış')).toBeInTheDocument()
   })
 
   test('AlertFeed istatistikleri render edilmeli', async () => {
     render(<InstructorDashboard onNavigate={() => {}} onLogout={() => {}} />)
 
-    expect(screen.getByText('Bugunku Aktif Sinavlar')).toBeInTheDocument()
+    expect(screen.getByText('Bugünkü Aktif Sınavlar')).toBeInTheDocument()
     expect(screen.getByText('Aktif Oturumlar')).toBeInTheDocument()
     expect(screen.getByText('Kritik Alarm')).toBeInTheDocument()
+
     expect(await screen.findByText('2')).toBeInTheDocument()
-  })
+    expect(screen.getAllByText('1')).toHaveLength(2)  })
 
   test('StudentGrid ogrenci bilgileri render edilmeli', async () => {
     render(<InstructorDashboard onNavigate={() => {}} onLogout={() => {}} />)
@@ -81,18 +97,20 @@ describe('InstructorDashboard Page', () => {
 
     render(<InstructorDashboard onNavigate={mockNavigate} onLogout={() => {}} />)
 
-    await userEvent.click((await screen.findAllByText('Rapor'))[0])
+    const reportButtons = await screen.findAllByText('Rapor')
+
+    await userEvent.click(reportButtons[0])
 
     expect(mockNavigate).toHaveBeenCalledTimes(1)
     expect(mockNavigate).toHaveBeenCalledWith('report', { sessionId: 's1' })
   })
 
-  test('Cikis butonuna tiklaninca onLogout calismali', async () => {
+  test('Çıkış butonuna tiklaninca onLogout calismali', async () => {
     const mockLogout = vi.fn()
 
     render(<InstructorDashboard onNavigate={() => {}} onLogout={mockLogout} />)
 
-    await userEvent.click(screen.getByText('Cikis'))
+    await userEvent.click(screen.getByText('Çıkış'))
 
     expect(mockLogout).toHaveBeenCalledTimes(1)
   })

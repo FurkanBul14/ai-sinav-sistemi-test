@@ -1,17 +1,14 @@
-
 // Exam Service API — Frontend tarafı
 // Sınav listeleme, başlatma, cevap gönderme, sonuç görüntüleme
-// Backend (exam-service :3002) gelince bu dosya otomatik çalışacak
 
-import api from './api.js';
+import api from "./api.js";
 
 const examService = {
-
   // ──────────────────────────────────────────────
-  // Sınav Listesi (Eğitmen & Öğrenci)
+  // Sınav Listesi
   // ──────────────────────────────────────────────
   async getExams() {
-    return api.get('/api/exams');
+    return api.get("/api/exams");
   },
 
   async getExamById(examId) {
@@ -23,10 +20,10 @@ const examService = {
   },
 
   // ──────────────────────────────────────────────
-  // Sınav Oluşturma (Eğitmen)
+  // Sınav Oluşturma / Güncelleme / Silme
   // ──────────────────────────────────────────────
   async createExam(examData) {
-    return api.post('/api/exams', examData);
+    return api.post("/api/exams", examData);
   },
 
   async updateExam(examId, examData) {
@@ -38,13 +35,13 @@ const examService = {
   },
 
   // ──────────────────────────────────────────────
-  // Sınav Oturumu (Öğrenci)
+  // Sınav Oturumu
   // ──────────────────────────────────────────────
   async joinByCode(code, student = {}) {
-    return api.post('/api/exams/join', {
+    return api.post("/api/exams/join", {
       code,
-      studentId: student.studentId,
-      studentName: student.studentName,
+      studentId: student.studentId || "student-1",
+      studentName: student.studentName || "",
     });
   },
 
@@ -56,11 +53,14 @@ const examService = {
   },
 
   async getSession(sessionId) {
-    return api.get(`/api/sessions/${sessionId}`); // Henüz backendde yok, mocklanabilir
+    return api.get(`/api/sessions/${sessionId}`);
   },
 
   async submitAnswer(sessionId, questionId, answer) {
-    return api.post(`/api/sessions/${sessionId}/answer`, { questionId, answer }); // İleride eklenecek
+    return api.post(`/api/sessions/${sessionId}/answer`, {
+      questionId,
+      answer,
+    });
   },
 
   async finishSession(examId, sessionId, data = {}) {
@@ -68,10 +68,10 @@ const examService = {
       sessionId,
       answers: data.answers || {},
       riskScore: data.riskScore || 0,
-      riskLevel: data.riskLevel || 'LOW',
+      riskLevel: data.riskLevel || "LOW",
       eventCounts: data.eventCounts || {},
       proctoringSummary: data.proctoringSummary || {},
-      status: data.status || 'submitted',
+      status: data.status || "submitted",
     });
   },
 
@@ -84,6 +84,19 @@ const examService = {
 
   async getExamSessions(examId) {
     return api.get(`/api/exams/${examId}/sessions`);
+  },
+
+  // ──────────────────────────────────────────────
+  // Öğrenci Sınav Geçmişi
+  // Backend'de endpoint varsa gerçek kayıtları çeker.
+  // Endpoint yoksa StudentHome.jsx catch içinde localStorage kayıtlarını gösterir.
+  // ──────────────────────────────────────────────
+  async getStudentExamHistory(studentId, page = 1, limit = 5) {
+    return api.get(
+      `/api/sessions/student/${encodeURIComponent(
+        studentId
+      )}/history?page=${page}&limit=${limit}`
+    );
   },
 };
 

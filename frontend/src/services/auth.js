@@ -63,11 +63,6 @@ const authService = {
     return api.get(url);
   },
 
-  // Admin tarafından doğrudan kullanıcı oluştur
-  async createUser({ name, email, password, role }) {
-    return api.post('/api/users', { name, email, password, role });
-  },
-
   // Yeni eğitmen kodu üret
   async generateInstructorCode() {
     return api.post('/api/users/instructor-codes', {});
