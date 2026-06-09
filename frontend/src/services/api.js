@@ -31,8 +31,8 @@ class ApiClient {
     return headers;
   }
 
-  // genel HTTP request
-  async request(method, path, body = null, includeAuth = true) {
+  // genel HTTP request — 503 gelirse 3 kez 8sn arayla retry yapar (Render cold start)
+  async request(method, path, body = null, includeAuth = true, _retryCount = 0) {
     const url = `${this.baseURL}${path}`;
     const options = {
       method,
@@ -44,9 +44,19 @@ class ApiClient {
     try {
       response = await fetch(url, options);
     } catch (networkErr) {
+      if (_retryCount < 3) {
+        await new Promise(r => setTimeout(r, 8000));
+        return this.request(method, path, body, includeAuth, _retryCount + 1);
+      }
       const error = new Error('Sunucuya bağlanılamıyor. Lütfen backend servisinin çalıştığından emin olun.');
       error.status = 0;
       throw error;
+    }
+
+    // 503 = upstream uyuyor, bekle ve tekrar dene
+    if (response.status === 503 && _retryCount < 3) {
+      await new Promise(r => setTimeout(r, 8000));
+      return this.request(method, path, body, includeAuth, _retryCount + 1);
     }
 
     // Yanıtı güvenli şekilde JSON olarak parse et
