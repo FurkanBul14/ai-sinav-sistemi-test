@@ -101,12 +101,20 @@ function makeProxy(target, pathRewrite = {}) {
   });
 }
 
-// Auth Service: /api/auth/*
-app.use(
-  '/api/auth',
-  ...tenantMiddleware,
-  makeProxy(SERVICES.auth)
-);
+// Auth Service: /api/auth/* — login/register public, diğerleri tenant auth gerektirir
+const publicAuthPaths = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh-token', '/api/auth/forgot-password'];
+app.use('/api/auth', (req, res, next) => {
+  if (publicAuthPaths.some(p => req.path === p.replace('/api/auth', '') || req.originalUrl.startsWith(p))) {
+    return makeProxy(SERVICES.auth)(req, res, next);
+  }
+  return tenantMiddleware[0](req, res, () =>
+    tenantMiddleware[1](req, res, () =>
+      tenantMiddleware[2](req, res, () =>
+        makeProxy(SERVICES.auth)(req, res, next)
+      )
+    )
+  );
+});
 
 // User Service: /api/users/*
 app.use(
