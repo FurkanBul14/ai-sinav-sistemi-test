@@ -462,7 +462,9 @@ const handleFinishExam = useCallback(
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentQuestionId = questionIdFor(currentQuestion, currentQuestionIndex);
-  const faceDetected = proctoring.faceResult?.face_detected === true;
+  // null/undefined = AI servisi cevap vermedi, bloklama. Sadece açıkça false gelince blokla.
+  const faceDetected =
+    proctoring.faceResult == null || proctoring.faceResult?.face_detected === true;
 
   const examBlocked =
     proctoringStarted &&
