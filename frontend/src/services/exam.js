@@ -1,7 +1,7 @@
 // Exam Service API — Frontend tarafı
 // Sınav listeleme, başlatma, cevap gönderme, sonuç görüntüleme
 
-import api from "./api.js";
+import { examApi as api } from "./api.js";
 
 const examService = {
   // ──────────────────────────────────────────────

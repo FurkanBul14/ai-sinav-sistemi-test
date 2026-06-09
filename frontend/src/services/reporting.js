@@ -23,15 +23,7 @@ const fallbackReports = [
   },
 ];
 
-async function getJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) {
-    const error = new Error(`Request failed: ${url}`);
-    error.status = res.status;
-    throw error;
-  }
-  return res.json();
-}
+import { reportingApi } from './api.js';
 
 const reportingService = {
   async getReports(filters = {}) {
@@ -42,7 +34,7 @@ const reportingService = {
 
     try {
       const path = `/api/reports${query.toString() ? `?${query.toString()}` : ''}`;
-      const data = await getJson(path);
+      const data = await reportingApi.get(path);
       return data.reports || [];
     } catch (err) {
       console.warn('[Reporting] Rapor listesi alinamadi:', err.message);
@@ -54,7 +46,7 @@ const reportingService = {
     if (!sessionId) return fallbackReports[0];
 
     try {
-      const data = await getJson(`/api/reports/${sessionId}`);
+      const data = await reportingApi.get(`/api/reports/${sessionId}`);
       return data.report;
     } catch (err) {
       console.warn('[Reporting] Rapor detayi alinamadi:', err.message);
