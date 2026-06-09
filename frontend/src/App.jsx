@@ -13,6 +13,16 @@ export default function App() {
   const [pageParams, setPageParams] = useState({});
   const [user, setUser] = useState(null);
 
+  // ─── B2B iframe iletişim köprüsü ──────────────────────
+  const isEmbedded = window.self !== window.top;
+
+  // Parent'a mesaj gönder
+  const postToParent = (type, data = {}) => {
+    if (isEmbedded && window.parent) {
+      window.parent.postMessage({ type: 'PROCTOR_EVENT', event: type, data }, '*');
+    }
+  };
+
   useEffect(() => {
     if (authService.isAuthenticated()) {
       const savedUser = authService.getCurrentUser();
@@ -28,7 +38,40 @@ export default function App() {
           // Öğrenci giriş yaptıysa önce sınav kodu girilen home ekranına gider
           setPage("student-home");
         }
+
+        postToParent('user-authenticated', { role, name: savedUser.name });
       }
+    }
+
+    // iframe'e gelen mesajları dinle (parent → iframe)
+    if (isEmbedded) {
+      const handleParentMessage = (event) => {
+        if (!event.data || event.data.type !== 'PROCTOR_COMMAND') return;
+        
+        const { command, data } = event.data;
+        switch (command) {
+          case 'set-exam-code':
+            if (data?.examCode) {
+              handleNavigate('student-home', { examCode: data.examCode });
+            }
+            break;
+          case 'navigate':
+            if (data?.page) {
+              handleNavigate(data.page, data.params || {});
+            }
+            break;
+          case 'logout':
+            handleLogout();
+            break;
+          default:
+            console.log('[B2B] Bilinmeyen komut:', command);
+        }
+      };
+
+      window.addEventListener('message', handleParentMessage);
+      window.parent.postMessage({ type: 'PROCTOR_READY', version: '1.0.0' }, '*');
+
+      return () => window.removeEventListener('message', handleParentMessage);
     }
   }, []);
 
@@ -61,6 +104,7 @@ export default function App() {
 
     setPageParams(params);
     setPage(target);
+    postToParent('page-navigate', { page: target });
   };
 
   const handleLogout = () => {
@@ -68,6 +112,7 @@ export default function App() {
     setUser(null);
     setPageParams({});
     setPage("login");
+    postToParent('user-logout', {});
   };
 
   switch (page) {
@@ -83,9 +128,17 @@ export default function App() {
       );
 
     case "instructor-dashboard":
-    case "admin-dashboard":
       return (
         <InstructorDashboard
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        />
+      );
+
+    case "admin-dashboard":
+    case "admin-panel":
+      return (
+        <AdminPanel
           onNavigate={handleNavigate}
           onLogout={handleLogout}
         />
@@ -116,19 +169,19 @@ export default function App() {
         />
       );
 
-    case "admin-panel":
-      return (
-        <AdminPanel
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
-        />
-      );
-
     case "report":
       return (
         <ReportDetail
           onNavigate={handleNavigate}
           sessionId={pageParams.sessionId}
+        />
+      );
+
+    case "report-detail":
+      return (
+        <ReportDetail
+          onNavigate={handleNavigate}
+          sessionId={typeof pageParams === "string" ? pageParams : pageParams.sessionId}
         />
       );
 
