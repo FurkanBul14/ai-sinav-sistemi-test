@@ -7,6 +7,8 @@ describe('useTabVisibility Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    delete window.__PROCTORING_VISIBILITY_GUARD__
+
     Object.defineProperty(document, 'hidden', {
       configurable: true,
       value: false,
@@ -22,10 +24,13 @@ describe('useTabVisibility Hook', () => {
     )
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+    delete window.__PROCTORING_VISIBILITY_GUARD__
+  })
+
   test('başlangıç state değerleri doğru olmalı', () => {
-    const { result } = renderHook(() =>
-      useTabVisibility()
-    )
+    const { result } = renderHook(() => useTabVisibility())
 
     expect(result.current.isTabVisible).toBe(true)
     expect(result.current.isFullscreen).toBe(false)
@@ -38,9 +43,7 @@ describe('useTabVisibility Hook', () => {
   test('sekme gizlenince tabSwitch ihlali artmalı', () => {
     const onViolation = vi.fn()
 
-    const { result } = renderHook(() =>
-      useTabVisibility(onViolation)
-    )
+    const { result } = renderHook(() => useTabVisibility(onViolation))
 
     Object.defineProperty(document, 'hidden', {
       configurable: true,
@@ -54,21 +57,16 @@ describe('useTabVisibility Hook', () => {
     expect(result.current.isTabVisible).toBe(false)
     expect(result.current.violations.tabSwitch).toBe(1)
 
-    expect(onViolation).toHaveBeenCalledWith(
-      'tab_switch',
-      {
-        tabSwitch: 1,
-        fullscreenExit: 0,
-      }
-    )
+    expect(onViolation).toHaveBeenCalledWith('TAB_SWITCH', {
+      tabSwitch: 1,
+      fullscreenExit: 0,
+    })
   })
 
   test('sekme tekrar görünür olunca ihlal artmamalı', () => {
     const onViolation = vi.fn()
 
-    const { result } = renderHook(() =>
-      useTabVisibility(onViolation)
-    )
+    const { result } = renderHook(() => useTabVisibility(onViolation))
 
     Object.defineProperty(document, 'hidden', {
       configurable: true,
@@ -85,26 +83,20 @@ describe('useTabVisibility Hook', () => {
   })
 
   test('requestFullscreen tam ekranı başlatmalı', async () => {
-    const { result } = renderHook(() =>
-      useTabVisibility()
-    )
+    const { result } = renderHook(() => useTabVisibility())
 
     await act(async () => {
       await result.current.requestFullscreen()
     })
 
-    expect(document.documentElement.requestFullscreen)
-      .toHaveBeenCalledTimes(1)
-
+    expect(document.documentElement.requestFullscreen).toHaveBeenCalledTimes(1)
     expect(result.current.isFullscreen).toBe(true)
   })
 
   test('tam ekrandan çıkınca fullscreenExit ihlali artmalı', async () => {
     const onViolation = vi.fn()
 
-    const { result } = renderHook(() =>
-      useTabVisibility(onViolation)
-    )
+    const { result } = renderHook(() => useTabVisibility(onViolation))
 
     await act(async () => {
       await result.current.requestFullscreen()
@@ -122,21 +114,16 @@ describe('useTabVisibility Hook', () => {
     expect(result.current.isFullscreen).toBe(false)
     expect(result.current.violations.fullscreenExit).toBe(1)
 
-    expect(onViolation).toHaveBeenCalledWith(
-      'fullscreen_exit',
-      {
-        tabSwitch: 0,
-        fullscreenExit: 1,
-      }
-    )
+    expect(onViolation).toHaveBeenCalledWith('FULLSCREEN_EXIT', {
+      tabSwitch: 0,
+      fullscreenExit: 1,
+    })
   })
 
   test('fullscreen hiç başlatılmadan fullscreenchange olursa ihlal sayılmamalı', () => {
     const onViolation = vi.fn()
 
-    const { result } = renderHook(() =>
-      useTabVisibility(onViolation)
-    )
+    const { result } = renderHook(() => useTabVisibility(onViolation))
 
     Object.defineProperty(document, 'fullscreenElement', {
       configurable: true,
@@ -160,9 +147,7 @@ describe('useTabVisibility Hook', () => {
       Promise.reject(new Error('Fullscreen blocked'))
     )
 
-    const { result } = renderHook(() =>
-      useTabVisibility()
-    )
+    const { result } = renderHook(() => useTabVisibility())
 
     await act(async () => {
       await result.current.requestFullscreen()
@@ -170,7 +155,5 @@ describe('useTabVisibility Hook', () => {
 
     expect(consoleSpy).toHaveBeenCalled()
     expect(result.current.isFullscreen).toBe(false)
-
-    consoleSpy.mockRestore()
   })
 })

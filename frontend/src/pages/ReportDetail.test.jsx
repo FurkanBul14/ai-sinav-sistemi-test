@@ -53,11 +53,18 @@ vi.mock('../services/reporting.js', () => ({
 }))
 
 describe('ReportPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   test('sayfa basligi ve ogrenci bilgileri render edilmeli', async () => {
     render(<ReportPage onNavigate={() => {}} sessionId="S12345" />)
 
     expect(screen.getByText('Risk Raporu')).toBeInTheDocument()
-    expect(await screen.findByText('Risk Raporu - Oturum #S12345')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Risk Raporu - Oturum #S12345')
+    ).toBeInTheDocument()
+
     expect(screen.getByText('Ali Yilmaz')).toBeInTheDocument()
     expect(screen.getByText('Matematik Vize')).toBeInTheDocument()
   })
@@ -73,9 +80,9 @@ describe('ReportPage', () => {
     render(<ReportPage onNavigate={() => {}} sessionId="S12345" />)
 
     expect(await screen.findByText('Tam ekran ihlali:')).toBeInTheDocument()
-    expect(screen.getByText('Sekme degisimi:')).toBeInTheDocument()
-    expect(screen.getByText('Supheli ses:')).toBeInTheDocument()
-    expect(screen.getByText('Bakis kaybi:')).toBeInTheDocument()
+    expect(screen.getByText('Sekme değişimi:')).toBeInTheDocument()
+    expect(screen.getByText('Şüpheli ses:')).toBeInTheDocument()
+    expect(screen.getByText('Bakış kaybı:')).toBeInTheDocument()
     expect(screen.getByText('Telefon / nesne:')).toBeInTheDocument()
   })
 
@@ -89,8 +96,8 @@ describe('ReportPage', () => {
   test('aksiyon butonlari render edilmeli', async () => {
     render(<ReportPage onNavigate={() => {}} sessionId="S12345" />)
 
-    expect(await screen.findByText('JSON Disa Aktar')).toBeInTheDocument()
-    expect(screen.getByText('Oturumlari Goster')).toBeInTheDocument()
+    expect(await screen.findByText('JSON Dışa Aktar')).toBeInTheDocument()
+    expect(screen.getByText('Oturumları Göster')).toBeInTheDocument()
   })
 
   test('geri don butonu onNavigate calistirmali', async () => {
@@ -98,7 +105,7 @@ describe('ReportPage', () => {
 
     render(<ReportPage onNavigate={mockNavigate} sessionId="S12345" />)
 
-    await userEvent.click(screen.getByText('Geri Don'))
+    await userEvent.click(screen.getByText('Geri Dön'))
 
     expect(mockNavigate).toHaveBeenCalledTimes(1)
     expect(mockNavigate).toHaveBeenCalledWith('admin-dashboard')
