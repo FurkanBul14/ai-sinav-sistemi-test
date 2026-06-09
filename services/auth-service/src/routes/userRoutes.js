@@ -4,18 +4,18 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// tüm route'lar admin korumalı
 router.use(protect);
-router.use(authorize('admin'));
 
-// Eğitmen kodları
-router.post('/instructor-codes', generateCode);
-router.get('/instructor-codes', listCodes);
+// Eğitmen kodları — sadece admin
+router.post('/instructor-codes', authorize('admin'), generateCode);
+router.get('/instructor-codes', authorize('admin'), listCodes);
 
-// Kullanıcılar
-router.get('/', getUsers);
-router.get('/:id', getUser);
-router.put('/:id/role', updateRole);
-router.put('/:id/active', toggleActive);
+// Kullanıcı listeleme — eğitmen ve admin görebilir
+router.get('/', authorize('admin', 'instructor'), getUsers);
+router.get('/:id', authorize('admin', 'instructor'), getUser);
+
+// Rol/aktiflik değişikliği — sadece admin
+router.put('/:id/role', authorize('admin'), updateRole);
+router.put('/:id/active', authorize('admin'), toggleActive);
 
 module.exports = router;

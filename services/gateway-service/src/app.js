@@ -104,8 +104,8 @@ function makeProxy(target, pathRewrite = {}) {
 // Auth Service: /api/auth/* — public, no tenant middleware
 app.use('/api/auth', makeProxy(SERVICES.auth, { '^/': '/api/auth/' }));
 
-// User Service: /api/users/*
-app.use('/api/users', ...tenantMiddleware, makeProxy(SERVICES.auth, { '^/': '/api/users/' }));
+// User Service: /api/users/* — JWT ile erişilebilir (eğitmen/admin)
+app.use('/api/users', makeProxy(SERVICES.auth, { '^/': '/api/users/' }));
 
 // Exam Service: /api/exams/*
 app.use('/api/exams', ...tenantMiddleware, makeProxy(SERVICES.exam, { '^/': '/api/exams/' }));
