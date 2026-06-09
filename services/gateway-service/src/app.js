@@ -101,36 +101,20 @@ function makeProxy(target, pathRewrite = {}) {
   });
 }
 
-// Auth Service: /api/auth/* — tenant middleware yok, direkt proxy
-app.use('/api/auth', makeProxy(SERVICES.auth));
+// Auth Service: /api/auth/* — public, no tenant middleware
+app.use('/api/auth', makeProxy(SERVICES.auth, { '^/': '/api/auth/' }));
 
 // User Service: /api/users/*
-app.use(
-  '/api/users',
-  ...tenantMiddleware,
-  makeProxy(SERVICES.auth)
-);
+app.use('/api/users', ...tenantMiddleware, makeProxy(SERVICES.auth, { '^/': '/api/users/' }));
 
 // Exam Service: /api/exams/*
-app.use(
-  '/api/exams',
-  ...tenantMiddleware,
-  makeProxy(SERVICES.exam)
-);
+app.use('/api/exams', ...tenantMiddleware, makeProxy(SERVICES.exam, { '^/': '/api/exams/' }));
 
 // Reporting Service: /api/reports/*
-app.use(
-  '/api/reports',
-  ...tenantMiddleware,
-  makeProxy(SERVICES.reporting)
-);
+app.use('/api/reports', ...tenantMiddleware, makeProxy(SERVICES.reporting, { '^/': '/api/reports/' }));
 
 // Proctoring Service: /api/proctoring/*
-app.use(
-  '/api/proctoring',
-  ...tenantMiddleware,
-  makeProxy(SERVICES.proctoring)
-);
+app.use('/api/proctoring', ...tenantMiddleware, makeProxy(SERVICES.proctoring, { '^/': '/api/proctoring/' }));
 
 // =============================================================
 // Tenant Bilgi Endpoint'i (kendi bilgilerini görmek için)
