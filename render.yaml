@@ -265,7 +265,7 @@ envVarGroups:
   - name: mongodb-atlas
     envVars:
       - key: MONGO_URI
-        value: REPLACE_WITH_ATLAS_CONNECTION_STRING
+        sync: false
 
   # JWT ayarları — dashboard'dan değiştir!
   - name: jwt-config
