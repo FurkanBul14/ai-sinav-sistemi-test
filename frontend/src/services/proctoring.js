@@ -27,10 +27,17 @@ function getSocket() {
   return socket;
 }
 
-async function postJson(url, body) {
+const PROCTORING_URL = import.meta.env.VITE_PROCTORING_SERVICE_URL || import.meta.env.VITE_API_BASE_URL || '';
+
+async function postJson(path, body) {
+  const url = path.startsWith('http') ? path : `${PROCTORING_URL}${path}`;
+  const token = localStorage.getItem('token');
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(body),
   });
 

@@ -38,6 +38,8 @@ services:
         value: https://ai-sinav-exam.onrender.com
       - key: VITE_REPORTING_SERVICE_URL
         value: https://ai-sinav-reporting.onrender.com
+      - key: VITE_PROCTORING_SERVICE_URL
+        value: https://ai-sinav-proctoring.onrender.com
       - key: VITE_PROCTORING_WS_URL
         value: https://ai-sinav-proctoring.onrender.com
 

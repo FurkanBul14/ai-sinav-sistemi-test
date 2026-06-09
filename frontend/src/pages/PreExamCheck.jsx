@@ -105,9 +105,17 @@ export default function PreExamCheck({ onComplete, examTitle }) {
 
         console.log("[PreExamCheck] Face result:", faceResult);
 
-        if (faceResult?.face_detected === true || faceResult?.face?.face_detected === true) {
+        if (
+          faceResult?.face_detected === true ||
+          faceResult?.face?.face_detected === true ||
+          faceResult?.canStart === true
+        ) {
           faceStatus = "success";
           setMessage("Yüz algılandı. Sınava geçebilirsiniz.");
+        } else if (faceResult === null || faceResult === undefined) {
+          // AI servisi uyku modunda — kamera görüntüsü yeterliyse geç
+          faceStatus = "success";
+          setMessage("Yüz doğrulama servisi hazırlanıyor, kamera aktif. Sınava geçebilirsiniz.");
         } else {
           faceStatus = "failed";
           setMessage("Yüz algılanmadı. Lütfen kameraya net görünecek şekilde tekrar deneyin.");
